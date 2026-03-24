@@ -3,252 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — Warden Touch Prototype</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <title>Hollow Realm — Stream Wake Prototype</title>
     <style>
-        :root {
-            --ripple-color: rgba(157, 114, 255, 0.6);
-            --glitch-speed: 0.2s;
-            --bg-color: #050510;
-        }
-
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color);
-            color: #e8e0ff;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            user-select: none;
+            background-color: #050510; color: #e8e0ff;
+            font-family: 'Inter', sans-serif; overflow: hidden;
             touch-action: none;
         }
 
-        #canvas-container {
-            position: fixed; inset: 0; z-index: 1; pointer-events: none;
-        }
+        canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
-        #ui-layer {
-            position: relative; z-index: 10;
-            width: 100%; height: 100%;
+        #ui {
+            position: relative; z-index: 10; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; box-sizing: border-box;
-        }
-
-        .header {
-            font-family: 'Cinzel', serif;
-            font-size: 1.5rem; letter-spacing: 4px; color: #fff;
-            text-shadow: 0 0 10px rgba(157, 114, 255, 0.8);
-            margin-bottom: 40px; text-align: center;
-        }
-
-        /* THE PUSH CARDS */
-        .card-container {
-            display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 350px;
         }
 
         .push-card {
             background: rgba(15, 12, 40, 0.8);
             border: 1px solid rgba(157, 114, 255, 0.3);
-            border-radius: 12px; padding: 20px;
-            backdrop-filter: blur(10px);
-            transition: transform 0.1s ease-out, box-shadow 0.2s;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            border-radius: 12px; padding: 25px; width: 300px;
+            margin: 10px; backdrop-filter: blur(10px);
+            transition: transform 0.1s ease-out;
+            text-align: center; font-weight: bold;
         }
-
-        .push-card:active {
-            border-color: #fff;
-            box-shadow: 0 0 20px rgba(157, 114, 255, 0.5);
-        }
-
-        .card-title { font-family: 'Cinzel', serif; font-size: 0.9rem; color: #cfa8ff; margin-bottom: 5px; }
-        .card-desc { font-size: 0.7rem; color: #8b85a1; }
-
-        /* OVERLORD CONTROLS */
-        .controls {
-            position: absolute; bottom: 30px;
-            display: flex; gap: 10px;
-        }
-
-        .btn {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(157,114,255,0.3);
-            color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 0.6rem;
-            cursor: pointer; font-weight: bold; font-family: 'Inter';
-        }
-
-        .btn.active { background: #9d72ff; color: #000; border-color: #fff; }
-
-        /* GLITCH ANIMATION */
-        @keyframes glitch {
-            0% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(-2px, -2px); }
-            60% { transform: translate(2px, 2px); }
-            80% { transform: translate(2px, -2px); }
-            100% { transform: translate(0); }
-        }
-
-        .glitching { animation: glitch var(--glitch-speed) infinite; }
-
     </style>
 </head>
 <body>
 
-    <div id="canvas-container">
-        <canvas id="rippleCanvas"></canvas>
-    </div>
+    <canvas id="canvas"></canvas>
 
-    <div id="ui-layer">
-        <div class="header" id="mainHeader">HOLLOW REALM<br><span style="font-size:0.6rem; opacity:0.6;">WARDEN TOUCH PROTOTYPE</span></div>
-
-        <div class="card-container">
-            <div class="push-card" data-class="Warrior">
-                <div class="card-title">⚔️ IRONHIDE BATTLE-READY</div>
-                <div class="card-desc">Move your finger near this card to feel the displacement ripple.</div>
-            </div>
-            <div class="push-card" data-class="Wizard">
-                <div class="card-title">🔮 ARCANE SURGE ACTIVE</div>
-                <div class="card-desc">The closer you get, the more the UI "pushes" back.</div>
-            </div>
-            <div class="push-card" data-class="Rogue">
-                <div class="card-title">🗡️ SHADOW-STEP ENGAGED</div>
-                <div class="card-desc">Tap to leak Static into the Library floor.</div>
-            </div>
-        </div>
-
-        <div class="controls">
-            <div class="btn active" onclick="setMode('Normal', this)">NORMAL</div>
-            <div class="btn" onclick="setMode('Gravenor', this)" style="border-color:#ef5350">GRAVENOR</div>
-            <div class="btn" onclick="setMode('Warden', this)" style="border-color:#ce93d8">NULL WARDEN</div>
-        </div>
+    <div id="ui">
+        <div style="font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 20px;">DRAG ACROSS THE CARDS</div>
+        <div class="push-card">MOON SQUAD HQ</div>
+        <div class="push-card">THE HOLLOW'S EDGE</div>
+        <div class="push-card">VOID ENCOUNTER</div>
     </div>
 
     <script>
-        const canvas = document.getElementById('rippleCanvas');
+        const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const cards = document.querySelectorAll('.push-card');
-        const header = document.getElementById('mainHeader');
 
-        let width, height;
-        let ripples = [];
-        let mouse = { x: -1000, y: -1000, active: false };
-        let mode = 'Normal';
+        let particles = [];
+        let mouse = { x: -100, y: -100, active: false };
 
         function init() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
 
-        window.addEventListener('resize', init);
-        init();
-
-        // 1. THE "PUSH" PHYSICS LOGIC
-        function updateUI() {
-            cards.forEach(card => {
-                const rect = card.getBoundingClientRect();
-                const cardCenterX = rect.left + rect.width / 2;
-                const cardCenterY = rect.top + rect.height / 2;
-
-                const dx = cardCenterX - mouse.x;
-                const dy = cardCenterY - mouse.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const forceRange = 150;
-
-                if (distance < forceRange) {
-                    const angle = Math.atan2(dy, dx);
-                    const pushFactor = (forceRange - distance) / 10; // Strength of the push
-                    const tx = Math.cos(angle) * pushFactor;
-                    const ty = Math.sin(angle) * pushFactor;
-                    
-                    card.style.transform = `translate(${tx}px, ${ty}px) scale(1.02)`;
-                    if(mode !== 'Normal') card.classList.add('glitching');
-                } else {
-                    card.style.transform = `translate(0, 0) scale(1)`;
-                    card.classList.remove('glitching');
-                }
-            });
-        }
-
-        // 2. THE RIPPLE LOGIC
-        class Ripple {
-            constructor(x, y, color) {
+        class Particle {
+            constructor(x, y) {
                 this.x = x; this.y = y;
-                this.size = 0;
-                this.maxSize = 100;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = (Math.random() - 0.5) * 2;
                 this.opacity = 1;
-                this.color = color;
-                this.speed = 4;
             }
             update() {
-                this.size += this.speed;
-                this.opacity -= 0.02;
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity -= 0.015;
             }
             draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.strokeStyle = this.color.replace('0.6', this.opacity);
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Add "Static Pixels" to ripple
-                if(mode === 'Warden' || mode === 'Gravenor') {
-                    for(let i=0; i<5; i++) {
-                        ctx.fillStyle = this.color;
-                        ctx.fillRect(this.x + (Math.random()-0.5)*this.size*2, this.y + (Math.random()-0.5)*this.size*2, 2, 2);
-                    }
-                }
-            }
-        }
-
-        function handleMove(e) {
-            const t = e.touches ? e.touches[0] : e;
-            mouse.x = t.clientX;
-            mouse.y = t.clientY;
-            updateUI();
-        }
-
-        function handleTap(e) {
-            const t = e.touches ? e.touches[0] : e;
-            let color = 'rgba(157, 114, 255, 0.6)';
-            if(mode === 'Gravenor') color = 'rgba(239, 83, 80, 0.6)';
-            if(mode === 'Warden') color = 'rgba(206, 147, 216, 0.6)';
-            
-            ripples.push(new Ripple(t.clientX, t.clientY, color));
-        }
-
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('touchstart', (e) => { handleMove(e); handleTap(e); });
-        window.addEventListener('mousedown', handleTap);
-
-        function setMode(newMode, btn) {
-            mode = newMode;
-            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            if(mode === 'Warden') {
-                header.style.textShadow = "0 0 20px #ce93d8";
-                header.classList.add('glitching');
-            } else {
-                header.style.textShadow = "0 0 10px rgba(157, 114, 255, 0.8)";
-                header.classList.remove('glitching');
+                ctx.fillStyle = `rgba(157, 114, 255, ${this.opacity})`;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
             }
         }
 
         function animate() {
-            ctx.fillStyle = 'rgba(5, 5, 16, 0.2)'; // Fading trail
-            ctx.fillRect(0, 0, width, height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Generate particles while dragging
+            if (mouse.active) {
+                for(let i=0; i<3; i++) particles.push(new Particle(mouse.x, mouse.y));
+            }
 
-            ripples.forEach((r, i) => {
-                r.update();
-                r.draw();
-                if (r.opacity <= 0) ripples.splice(i, 1);
+            particles.forEach((p, i) => {
+                p.update(); p.draw();
+                if (p.opacity <= 0) particles.splice(i, 1);
+            });
+
+            // Card Displacement Physics
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const dx = (rect.left + rect.width/2) - mouse.x;
+                const dy = (rect.top + rect.height/2) - mouse.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 150) {
+                    const angle = Math.atan2(dy, dx);
+                    const push = (150 - dist) / 8;
+                    card.style.transform = `translate(${Math.cos(angle)*push}px, ${Math.sin(angle)*push}px)`;
+                } else {
+                    card.style.transform = `translate(0, 0)`;
+                }
             });
 
             requestAnimationFrame(animate);
         }
 
-        animate();
+        const move = (e) => {
+            const t = e.touches ? e.touches[0] : e;
+            mouse.x = t.clientX; mouse.y = t.clientY;
+        };
 
+        window.addEventListener('mousedown', () => mouse.active = true);
+        window.addEventListener('mouseup', () => mouse.active = false);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('touchstart', (e) => { mouse.active = true; move(e); });
+        window.addEventListener('touchend', () => mouse.active = false);
+        window.addEventListener('touchmove', move);
+
+        init(); animate();
     </script>
 </body>
 </html>
+
