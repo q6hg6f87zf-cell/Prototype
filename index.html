@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — Celestial Rose Deep</title>
+    <title>Hollow Realm — Gaseous Rose Nebula</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background-color: #010103; color: #fff;
-            font-family: Arial, sans-serif; overflow: hidden;
+            font-family: 'Inter', sans-serif; overflow: hidden;
         }
 
         canvas { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
@@ -22,14 +22,14 @@
         }
 
         .archive-item {
-            background: rgba(8, 2, 5, 0.95);
-            border: 1px solid #4D0000;
+            background: rgba(5, 2, 8, 0.9);
+            border: 1px solid #300000;
             padding: 25px; margin-bottom: 20px; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
         }
 
-        .archive-title { color: #800020; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
-        .archive-body { font-size: 0.8rem; color: #5a5566; margin-top: 10px; line-height: 1.6; }
+        .archive-title { color: #600010; font-weight: bold; letter-spacing: 2px; }
+        .archive-body { font-size: 0.85rem; color: #4a4555; margin-top: 10px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -37,25 +37,24 @@
     <canvas id="trailCanvas"></canvas>
 
     <div id="scroll-layer">
-        <div style="text-align:center; color:#800020; letter-spacing:8px; margin: 40px 0; font-weight:bold;">CELESTIAL ROSE</div>
+        <div style="text-align:center; color:#400000; letter-spacing:10px; margin: 40px 0; font-weight:bold; font-size: 0.8rem;">CELESTIAL_ROSE_V3</div>
 
         <div class="archive-item">
-            <div class="archive-title">Obsidian Shard Found</div>
-            <div class="archive-body">The deep rose nebula has begun to leak through the rifts. The color is heavy, like dried blood on the stone walls of the kingdom.</div>
+            <div class="archive-title">Nebula Stabilization</div>
+            <div class="archive-body">The gas clouds have thickened. Light no longer passes through the rifts. If you drag your finger, the Rose should bleed into the archives like actual smoke.</div>
         </div>
 
         <div class="archive-item">
-            <div class="archive-title">Warden Log: Red Shift</div>
-            <div class="archive-body">The Static has shifted from violet to a deep, burnt crimson. Gravity feels twice as heavy. The Rose is blooming.</div>
+            <div class="archive-title">Warden Log: Dead Stars</div>
+            <div class="archive-body">The palette has been locked to Obsidian, Plum, and Blood. No more bright violets. Only the deep dark of the nebula's core remains.</div>
         </div>
 
-        <div style="height: 400px;"></div> 
+        <div style="height: 600px;"></div> 
     </div>
 
     <script>
         const canvas = document.getElementById('trailCanvas');
         const ctx = canvas.getContext('2d');
-        let points = [];
         let particles = [];
         let mouse = { x: 0, y: 0, active: false, startX: 0, startY: 0 };
         let isDrawing = false;
@@ -67,22 +66,31 @@
         window.addEventListener('resize', resize);
         resize();
 
-        class Particle {
+        class NebulaCloud {
             constructor(x, y) {
                 this.x = x; this.y = y;
-                this.size = Math.random() * 2 + 0.5;
-                this.vx = (Math.random() - 0.5) * 1;
-                this.vy = (Math.random() - 0.5) * 1;
+                // Randomize size to look like gas plumes
+                this.size = Math.random() * 40 + 20;
                 this.life = 1.0;
-                this.color = Math.random() > 0.3 ? '#800020' : '#FFD700'; // Blood Red or Gold
+                this.decay = Math.random() * 0.015 + 0.01;
+                // Deeper palette: Deep Blood, Bruised Plum, Obsidian
+                const colors = ['#2e0005', '#4d0010', '#1a001a', '#000000'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
             }
             update() {
                 this.x += this.vx; this.y += this.vy;
-                this.life -= 0.01;
+                this.life -= this.decay;
+                this.size += 0.5; // Gas expands as it fades
             }
             draw() {
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = this.life;
+                const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                grad.addColorStop(0, this.color);
+                grad.addColorStop(1, 'transparent');
+                
+                ctx.globalAlpha = this.life * 0.6;
+                ctx.fillStyle = grad;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -90,52 +98,22 @@
         }
 
         function animate() {
+            // Using a slight clear to leave a "ghost" trail
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (mouse.active && isDrawing) {
-                points.push({ x: mouse.x, y: mouse.y, age: 0 });
-                for(let i=0; i<1; i++) particles.push(new Particle(mouse.x, mouse.y));
-            }
-
-            if (points.length > 1) {
-                for (let i = 0; i < points.length; i++) {
-                    const p = points[i];
-                    const nextP = points[i + 1];
-                    if (nextP) {
-                        const life = 1 - (p.age / 50);
-                        
-                        // DRAW DARK OUTER SMOKE
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(nextP.x, nextP.y);
-                        ctx.strokeStyle = `rgba(26, 0, 26, ${life * 0.8})`; // Midnight Plum
-                        ctx.lineWidth = 35 * life;
-                        ctx.lineCap = 'round';
-                        ctx.stroke();
-
-                        // DRAW DEEP ROSE CORE
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(nextP.x, nextP.y);
-                        ctx.strokeStyle = `rgba(128, 0, 32, ${life})`; // Deep Blood Rose
-                        ctx.lineWidth = 15 * life;
-                        ctx.lineCap = 'round';
-                        ctx.shadowBlur = 15;
-                        ctx.shadowColor = '#4D0000';
-                        ctx.stroke();
-                        ctx.shadowBlur = 0;
-                    }
-                    p.age += 1;
-                    if (p.age > 50) { points.splice(i, 1); i--; }
+                // High density generation for thick "smoke"
+                for(let i=0; i<4; i++) {
+                    particles.push(new NebulaCloud(mouse.x + (Math.random()-0.5)*15, mouse.y + (Math.random()-0.5)*15));
                 }
             }
 
             particles.forEach((p, i) => {
-                p.update(); p.draw();
+                p.update();
+                p.draw();
                 if (p.life <= 0) particles.splice(i, 1);
             });
 
-            ctx.globalAlpha = 1.0;
             requestAnimationFrame(animate);
         }
 
@@ -153,7 +131,7 @@
             if (!isDrawing) {
                 const dx = Math.abs(t.clientX - mouse.startX);
                 const dy = Math.abs(t.clientY - mouse.startY);
-                if (dx > 25 && dx > dy) isDrawing = true;
+                if (dx > 20 && dx > dy) isDrawing = true;
             }
         }
 
