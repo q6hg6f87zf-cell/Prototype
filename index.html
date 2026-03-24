@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — Gaseous Rose Nebula</title>
+    <title>Hollow Realm — Moon Squad Palette</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #010103; color: #fff;
-            font-family: 'Inter', sans-serif; overflow: hidden;
+            background-color: #05050a; color: #e8e0ff;
+            font-family: Arial, sans-serif; overflow: hidden;
         }
 
         canvas { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
@@ -22,14 +22,14 @@
         }
 
         .archive-item {
-            background: rgba(5, 2, 8, 0.9);
-            border: 1px solid #300000;
+            background: rgba(10, 8, 20, 0.9);
+            border: 1px solid #9b1b1b44;
             padding: 25px; margin-bottom: 20px; border-radius: 12px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
-        .archive-title { color: #600010; font-weight: bold; letter-spacing: 2px; }
-        .archive-body { font-size: 0.85rem; color: #4a4555; margin-top: 10px; line-height: 1.6; }
+        .archive-title { color: #d35400; font-weight: bold; letter-spacing: 2px; text-transform: uppercase;}
+        .archive-body { font-size: 0.85rem; color: #8b85a1; margin-top: 10px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -37,16 +37,16 @@
     <canvas id="trailCanvas"></canvas>
 
     <div id="scroll-layer">
-        <div style="text-align:center; color:#400000; letter-spacing:10px; margin: 40px 0; font-weight:bold; font-size: 0.8rem;">CELESTIAL_ROSE_V3</div>
+        <div style="text-align:center; color:#9b1b1b; letter-spacing:10px; margin: 40px 0; font-weight:bold;">MOON SQUAD NEBULA</div>
 
         <div class="archive-item">
-            <div class="archive-title">Nebula Stabilization</div>
-            <div class="archive-body">The gas clouds have thickened. Light no longer passes through the rifts. If you drag your finger, the Rose should bleed into the archives like actual smoke.</div>
+            <div class="archive-title">Palette Sync Active</div>
+            <div class="archive-body">The Warden's Wake is now synced to the Moon Squad colors. You should see deep crimson bleeding into electric cyan sparks as you slash the screen.</div>
         </div>
 
         <div class="archive-item">
-            <div class="archive-title">Warden Log: Dead Stars</div>
-            <div class="archive-body">The palette has been locked to Obsidian, Plum, and Blood. No more bright violets. Only the deep dark of the nebula's core remains.</div>
+            <div class="archive-title">Celestial Rose Protocol</div>
+            <div class="archive-body">The orange hues represent the molten gold of the kingdom, while the cyan represents the static of the Edge. Drag horizontally to ignite.</div>
         </div>
 
         <div style="height: 600px;"></div> 
@@ -69,27 +69,30 @@
         class NebulaCloud {
             constructor(x, y) {
                 this.x = x; this.y = y;
-                // Randomize size to look like gas plumes
-                this.size = Math.random() * 40 + 20;
+                this.size = Math.random() * 50 + 20;
                 this.life = 1.0;
-                this.decay = Math.random() * 0.015 + 0.01;
-                // Deeper palette: Deep Blood, Bruised Plum, Obsidian
-                const colors = ['#2e0005', '#4d0010', '#1a001a', '#000000'];
-                this.color = colors[Math.floor(Math.random() * colors.length)];
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = (Math.random() - 0.5) * 0.5;
+                this.decay = Math.random() * 0.02 + 0.01;
+                
+                // Palette from image: Crimson, Burnt Orange, Electric Cyan, Deep Purple
+                const palette = ['#9b1b1b', '#d35400', '#00d4ff', '#2e003e'];
+                this.color = palette[Math.floor(Math.random() * palette.length)];
+                
+                this.vx = (Math.random() - 0.5) * 1.2;
+                this.vy = (Math.random() - 0.5) * 1.2;
             }
             update() {
                 this.x += this.vx; this.y += this.vy;
                 this.life -= this.decay;
-                this.size += 0.5; // Gas expands as it fades
+                this.size += 0.8; 
             }
             draw() {
                 const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
                 grad.addColorStop(0, this.color);
                 grad.addColorStop(1, 'transparent');
                 
-                ctx.globalAlpha = this.life * 0.6;
+                ctx.globalAlpha = this.life * 0.7;
+                // 'lighter' makes it look like glowing celestial gas
+                ctx.globalCompositeOperation = 'lighter';
                 ctx.fillStyle = grad;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -98,13 +101,11 @@
         }
 
         function animate() {
-            // Using a slight clear to leave a "ghost" trail
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (mouse.active && isDrawing) {
-                // High density generation for thick "smoke"
-                for(let i=0; i<4; i++) {
-                    particles.push(new NebulaCloud(mouse.x + (Math.random()-0.5)*15, mouse.y + (Math.random()-0.5)*15));
+                for(let i=0; i<3; i++) {
+                    particles.push(new NebulaCloud(mouse.x + (Math.random()-0.5)*20, mouse.y + (Math.random()-0.5)*20));
                 }
             }
 
