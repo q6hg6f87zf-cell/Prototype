@@ -3,120 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — Stream Wake Prototype</title>
+    <title>Hollow Realm — High-Precision Wake</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #050510; color: #e8e0ff;
+            background-color: #020208; color: #fff;
             font-family: 'Inter', sans-serif; overflow: hidden;
             touch-action: none;
         }
 
         canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
-        #ui {
+        #ui-layer {
             position: relative; z-index: 10; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        .push-card {
-            background: rgba(15, 12, 40, 0.8);
-            border: 1px solid rgba(157, 114, 255, 0.3);
-            border-radius: 12px; padding: 25px; width: 300px;
-            margin: 10px; backdrop-filter: blur(10px);
+        .hq-card {
+            background: rgba(10, 8, 30, 0.9);
+            border: 1px solid rgba(196, 130, 72, 0.4);
+            border-radius: 15px; padding: 30px; width: 280px;
+            text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.5);
             transition: transform 0.1s ease-out;
-            text-align: center; font-weight: bold;
+            pointer-events: auto;
         }
+
+        .label { font-size: 0.6rem; color: #c48248; letter-spacing: 3px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <canvas id="canvas"></canvas>
+    <canvas id="trailCanvas"></canvas>
 
-    <div id="ui">
-        <div style="font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 20px;">DRAG ACROSS THE CARDS</div>
-        <div class="push-card">MOON SQUAD HQ</div>
-        <div class="push-card">THE HOLLOW'S EDGE</div>
-        <div class="push-card">VOID ENCOUNTER</div>
+    <div id="ui-layer">
+        <div class="label">WARDEN'S HAND</div>
+        <div class="hq-card" id="card1">MOON SQUAD HQ</div>
+        <div style="height:20px;"></div>
+        <div class="hq-card" id="card2">THE HOLLOW'S EDGE</div>
     </div>
 
     <script>
-        const canvas = document.getElementById('canvas');
+        const canvas = document.getElementById('trailCanvas');
         const ctx = canvas.getContext('2d');
-        const cards = document.querySelectorAll('.push-card');
+        const cards = document.querySelectorAll('.hq-card');
 
-        let particles = [];
-        let mouse = { x: -100, y: -100, active: false };
+        let points = [];
+        let mouse = { x: 0, y: 0, active: false };
 
-        function init() {
+        function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
+        window.addEventListener('resize', resize);
+        resize();
 
-        class Particle {
-            constructor(x, y) {
-                this.x = x; this.y = y;
-                this.size = Math.random() * 3 + 1;
-                this.speedX = (Math.random() - 0.5) * 2;
-                this.speedY = (Math.random() - 0.5) * 2;
-                this.opacity = 1;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                this.opacity -= 0.015;
-            }
-            draw() {
-                ctx.fillStyle = `rgba(157, 114, 255, ${this.opacity})`;
-                ctx.fillRect(this.x, this.y, this.size, this.size);
-            }
+        // THE TRAIL POINT LOGIC
+        function addPoint(x, y) {
+            points.push({
+                x: x,
+                y: y,
+                age: 0,
+                force: 10
+            });
         }
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Generate particles while dragging
-            if (mouse.active) {
-                for(let i=0; i<3; i++) particles.push(new Particle(mouse.x, mouse.y));
+
+            if (points.length > 1) {
+                ctx.beginPath();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#9d72ff';
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                for (let i = 0; i < points.length; i++) {
+                    const p = points[i];
+                    const nextP = points[i + 1];
+
+                    // Draw the segment
+                    if (nextP) {
+                        const opacity = 1 - (p.age / 40);
+                        const width = 8 * (1 - p.age / 40);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(nextP.x, nextP.y);
+                        ctx.strokeStyle = `rgba(157, 114, 255, ${opacity})`;
+                        ctx.lineWidth = width;
+                        ctx.stroke();
+                        
+                        // Add "Static" Flickers
+                        if (Math.random() > 0.8) {
+                            ctx.fillStyle = '#fff';
+                            ctx.fillRect(p.x + (Math.random()-0.5)*10, p.y + (Math.random()-0.5)*10, 2, 2);
+                        }
+                    }
+
+                    p.age++;
+                    if (p.age > 40) {
+                        points.splice(i, 1);
+                        i--;
+                    }
+                }
             }
 
-            particles.forEach((p, i) => {
-                p.update(); p.draw();
-                if (p.opacity <= 0) particles.splice(i, 1);
-            });
-
-            // Card Displacement Physics
+            // Physics: Cards react to the path
             cards.forEach(card => {
                 const rect = card.getBoundingClientRect();
-                const dx = (rect.left + rect.width/2) - mouse.x;
-                const dy = (rect.top + rect.height/2) - mouse.y;
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                
+                const dx = cx - mouse.x;
+                const dy = cy - mouse.y;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 150) {
+
+                if (dist < 150 && mouse.active) {
                     const angle = Math.atan2(dy, dx);
-                    const push = (150 - dist) / 8;
-                    card.style.transform = `translate(${Math.cos(angle)*push}px, ${Math.sin(angle)*push}px)`;
+                    const push = (150 - dist) / 6;
+                    card.style.transform = `translate(${Math.cos(angle)*push}px, ${Math.sin(angle)*push}px) rotate(${push/4}deg)`;
                 } else {
-                    card.style.transform = `translate(0, 0)`;
+                    card.style.transform = `translate(0, 0) rotate(0deg)`;
                 }
             });
 
             requestAnimationFrame(animate);
         }
 
-        const move = (e) => {
+        function handleInput(e) {
             const t = e.touches ? e.touches[0] : e;
-            mouse.x = t.clientX; mouse.y = t.clientY;
-        };
+            mouse.x = t.clientX;
+            mouse.y = t.clientY;
+            if (mouse.active) {
+                addPoint(mouse.x, mouse.y);
+            }
+        }
 
-        window.addEventListener('mousedown', () => mouse.active = true);
-        window.addEventListener('mouseup', () => mouse.active = false);
-        window.addEventListener('mousemove', move);
-        window.addEventListener('touchstart', (e) => { mouse.active = true; move(e); });
-        window.addEventListener('touchend', () => mouse.active = false);
-        window.addEventListener('touchmove', move);
+        window.addEventListener('mousedown', (e) => { mouse.active = true; handleInput(e); });
+        window.addEventListener('mouseup', () => { mouse.active = false; });
+        window.addEventListener('mousemove', handleInput);
 
-        init(); animate();
+        window.addEventListener('touchstart', (e) => { mouse.active = true; handleInput(e); });
+        window.addEventListener('touchend', () => { mouse.active = false; });
+        window.addEventListener('touchmove', handleInput);
+
+        animate();
     </script>
 </body>
 </html>
-
