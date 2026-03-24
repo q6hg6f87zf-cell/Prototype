@@ -3,46 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — Scroll vs Wake Test</title>
+    <title>Hollow Realm — Precision Warden Wake</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background-color: #050510; color: #fff;
             font-family: 'Inter', sans-serif; overflow: hidden;
+            touch-action: none;
         }
 
-        canvas { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+        canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
-        /* THE ACTUAL CONTENT YOU NEED TO SCROLL */
-        #scroll-layer {
-            position: relative; z-index: 10;
-            width: 100%; height: 100vh;
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch;
-            padding: 20px; box-sizing: border-box;
-            background: transparent;
+        #ui-layer {
+            position: relative; z-index: 10; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            pointer-events: none;
         }
 
-        .header {
-            font-size: 1.2rem; font-weight: bold; color: #c48248;
-            text-align: center; margin: 40px 0; letter-spacing: 5px;
-        }
-
-        .archive-item {
-            background: rgba(15, 12, 40, 0.8);
-            border: 1px solid rgba(196, 130, 72, 0.2);
-            padding: 20px; margin-bottom: 15px; border-radius: 8px;
-            backdrop-filter: blur(5px);
-        }
-
-        .archive-id { font-size: 0.6rem; color: #8b85a1; margin-bottom: 5px; }
-        .archive-title { font-weight: bold; color: #9d72ff; }
-        
-        .instruction-box {
-            background: rgba(157, 114, 255, 0.1);
-            border: 1px solid #9d72ff; padding: 15px;
-            border-radius: 8px; margin-bottom: 30px; font-size: 0.8rem;
-            line-height: 1.4; text-align: center;
+        .hq-card {
+            background: rgba(10, 8, 30, 0.9);
+            border: 1px solid rgba(196, 130, 72, 0.4);
+            border-radius: 15px; padding: 30px; width: 280px;
+            text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease-out;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -50,39 +34,19 @@
 
     <canvas id="trailCanvas"></canvas>
 
-    <div id="scroll-layer">
-        <div class="header">MOON SQUAD ARCHIVES</div>
-
-        <div class="instruction-box">
-            <b>TEST LOGIC:</b><br>
-            1. Scroll UP/DOWN to read the list.<br>
-            2. Swipe LEFT/RIGHT to trigger the Warden's Wake.
-        </div>
-
-        <div id="content-anchor"></div>
+    <div id="ui-layer">
+        <div class="hq-card" id="card1">MOON SQUAD HQ</div>
+        <div style="height:20px;"></div>
+        <div class="hq-card" id="card2">THE HOLLOW'S EDGE</div>
     </div>
 
     <script>
-        // Populate items
-        const anchor = document.getElementById('content-anchor');
-        for(let i=1; i<=20; i++) {
-            anchor.innerHTML += `
-                <div class="archive-item">
-                    <div class="archive-id">LOG_ENTRY_#00${i}</div>
-                    <div class="archive-title">Scouting Mission: Sector ${i*7}</div>
-                    <p style="font-size: 0.7rem; color: #bbb; margin-top:10px;">
-                        The Static in this region is measured at ${Math.floor(Math.random()*100)}%. 
-                        Moon Squad members are advised to check their Lockboxes before proceeding.
-                    </p>
-                </div>
-            `;
-        }
-
         const canvas = document.getElementById('trailCanvas');
         const ctx = canvas.getContext('2d');
+        const cards = document.querySelectorAll('.hq-card');
+
         let points = [];
-        let mouse = { x: 0, y: 0, active: false, startX: 0, startY: 0 };
-        let isDrawing = false;
+        let mouse = { x: -100, y: -100, active: false };
 
         function resize() {
             canvas.width = window.innerWidth;
@@ -93,65 +57,82 @@
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (mouse.active && isDrawing) {
+
+            // 1. CONSTANT POINT GENERATION (The Glue)
+            // If the finger is down, we force a point every frame regardless of movement
+            if (mouse.active) {
                 points.push({ x: mouse.x, y: mouse.y, age: 0 });
             }
+
             if (points.length > 1) {
-                ctx.shadowBlur = 15;
+                // Glow effect
+                ctx.shadowBlur = 10;
                 ctx.shadowColor = '#9d72ff';
+
                 for (let i = 0; i < points.length; i++) {
                     const p = points[i];
                     const nextP = points[i + 1];
+
                     if (nextP) {
-                        const life = 1 - (p.age / 30);
+                        const opacity = 1 - (p.age / 35);
+                        const width = 10 * (1 - p.age / 35);
+                        
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(nextP.x, nextP.y);
-                        ctx.strokeStyle = `rgba(157, 114, 255, ${life})`;
-                        ctx.lineWidth = 15 * life;
+                        ctx.strokeStyle = `rgba(157, 114, 255, ${opacity})`;
+                        ctx.lineWidth = width;
                         ctx.lineCap = 'round';
                         ctx.stroke();
+                        
+                        // Static "Glitch" Sparks along the trail
+                        if (Math.random() > 0.9) {
+                            ctx.fillStyle = '#fff';
+                            ctx.fillRect(p.x + (Math.random()-0.5)*15, p.y + (Math.random()-0.5)*15, 2, 2);
+                        }
                     }
-                    p.age += 1;
-                    if (p.age > 30) { points.splice(i, 1); i--; }
+
+                    p.age += 1; // How fast the trail disappears
+                    if (p.age > 35) {
+                        points.splice(i, 1);
+                        i--;
+                    }
                 }
             }
+
+            // Physics: Cards shivering when the hand is near
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const dx = (rect.left + rect.width / 2) - mouse.x;
+                const dy = (rect.top + rect.height / 2) - mouse.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+
+                if (dist < 140 && mouse.active) {
+                    const push = (140 - dist) / 5;
+                    const angle = Math.atan2(dy, dx);
+                    card.style.transform = `translate(${Math.cos(angle)*push}px, ${Math.sin(angle)*push}px) rotate(${push/3}deg)`;
+                } else {
+                    card.style.transform = `translate(0,0) rotate(0deg)`;
+                }
+            });
+
             requestAnimationFrame(animate);
         }
 
-        // Logic to detect swipe direction
-        function handleStart(e) {
-            const t = e.touches ? e.touches[0] : e;
-            mouse.active = true;
-            mouse.startX = t.clientX;
-            mouse.startY = t.clientY;
-            mouse.x = t.clientX;
-            mouse.y = t.clientY;
-            isDrawing = false;
-        }
-
-        function handleMove(e) {
+        // INPUT LISTENERS (Direct tracking)
+        function updatePos(e) {
             const t = e.touches ? e.touches[0] : e;
             mouse.x = t.clientX;
             mouse.y = t.clientY;
-
-            if (!isDrawing) {
-                const diffX = Math.abs(t.clientX - mouse.startX);
-                const diffY = Math.abs(t.clientY - mouse.startY);
-                // If moving more horizontally than vertically, trigger the wake
-                if (diffX > 20 && diffX > diffY) {
-                    isDrawing = true;
-                }
-            }
         }
 
-        window.addEventListener('mousedown', handleStart);
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', () => { mouse.active = false; isDrawing = false; });
+        window.addEventListener('mousedown', (e) => { mouse.active = true; updatePos(e); });
+        window.addEventListener('mouseup', () => { mouse.active = false; });
+        window.addEventListener('mousemove', updatePos);
 
-        window.addEventListener('touchstart', handleStart);
-        window.addEventListener('touchmove', handleMove);
-        window.addEventListener('touchend', () => { mouse.active = false; isDrawing = false; });
+        window.addEventListener('touchstart', (e) => { mouse.active = true; updatePos(e); });
+        window.addEventListener('touchend', () => { mouse.active = false; });
+        window.addEventListener('touchmove', (e) => { e.preventDefault(); updatePos(e); }, { passive: false });
 
         animate();
     </script>
