@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — Cosmic Nebula Wake</title>
+    <title>Hollow Realm — Celestial Rose Nebula</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #02020a; color: #fff;
+            background-color: #020105; color: #fff;
             font-family: 'Inter', sans-serif; overflow: hidden;
         }
 
@@ -26,25 +26,26 @@
             font-family: 'Cinzel', serif;
             font-size: 1.4rem; font-weight: bold; color: #c48248;
             text-align: center; margin: 40px 0; letter-spacing: 5px;
-            text-shadow: 0 0 15px rgba(196, 130, 72, 0.5);
+            text-shadow: 0 0 20px rgba(155, 17, 30, 0.6);
         }
 
         .archive-item {
-            background: rgba(10, 8, 30, 0.85);
-            border: 1px solid rgba(157, 114, 255, 0.2);
+            background: rgba(10, 5, 15, 0.9);
+            border: 1px solid rgba(155, 17, 30, 0.3);
             padding: 25px; margin-bottom: 20px; border-radius: 12px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        .archive-id { font-size: 0.6rem; color: #9d72ff; font-weight: bold; letter-spacing: 2px; margin-bottom: 8px; }
-        .archive-title { font-family: 'Cinzel', serif; font-size: 1rem; color: #fff; }
-        .archive-body { font-size: 0.75rem; color: #8b85a1; margin-top: 10px; line-height: 1.5; }
+        .archive-id { font-size: 0.6rem; color: #9b111e; font-weight: bold; letter-spacing: 2px; margin-bottom: 8px; }
+        .archive-title { font-family: 'Cinzel', serif; font-size: 1rem; color: #e8e0ff; }
+        .archive-body { font-size: 0.75rem; color: #6d6a7a; margin-top: 10px; line-height: 1.5; }
 
         .instruction-box {
-            background: rgba(157, 114, 255, 0.05);
-            border: 1px solid rgba(157, 114, 255, 0.3);
+            background: rgba(155, 17, 30, 0.05);
+            border: 1px solid rgba(155, 17, 30, 0.4);
             padding: 20px; border-radius: 12px; margin-bottom: 40px; 
-            font-size: 0.8rem; text-align: center; color: #cfa8ff;
+            font-size: 0.8rem; text-align: center; color: #ffb3b3;
         }
     </style>
 </head>
@@ -56,48 +57,31 @@
         <div class="header">MOON SQUAD ARCHIVES</div>
 
         <div class="instruction-box">
-            <b>WARDEN COMMANDS:</b><br>
-            Scroll <b>UP/DOWN</b> to navigate logs.<br>
-            Swipe <b>LEFT/RIGHT</b> to ignite Nebula Static.
+            <b>WARDEN COMMAND:</b><br>
+            Scroll <b>UP/DOWN</b> to read logs.<br>
+            Swipe <b>LEFT/RIGHT</b> to tear the Celestial Rose.
         </div>
 
         <div class="archive-item">
             <div class="archive-id">LOG_ENTRY_#001</div>
             <div class="archive-title">THE ASHEN HUNT BEGINS</div>
-            <div class="archive-body">Gravenor has been sighted near the northern tree line. The Static is thickening. Scouts report a heavy ozone smell and violet embers in the wind.</div>
+            <div class="archive-body">The horizon has turned a bruised plum color. The nebula is bleeding into the forest canopy. Gravenor is no longer just a wolf; he is the shadow within the rose.</div>
         </div>
 
         <div class="archive-item">
             <div class="archive-id">LOG_ENTRY_#002</div>
-            <div class="archive-title">GARRISON PROTOCOL 4</div>
-            <div class="archive-body">Quartermaster Rudge is requesting a count of all functional Lockboxes. Loot theft probability has increased by 15% this cycle.</div>
+            <div class="archive-title">BLOOD-GOLD TITHES</div>
+            <div class="archive-body">Valdris has demanded the treasury be melted. The molten gold looks like veins of fire beneath the kingdom's stone. The cost of existence is rising.</div>
         </div>
 
         <div class="archive-item">
             <div class="archive-id">LOG_ENTRY_#003</div>
-            <div class="archive-title">DROWNED ARCHIVE BREACH</div>
-            <div class="archive-body">The Sink is expanding. Water levels in the lower library have risen 3 feet. Recover all Tier 2 Grimoires immediately.</div>
+            <div class="archive-title">THE VOID'S EMBRACE</div>
+            <div class="archive-body">Communication with the Edge has been lost. The Static now carries a melodic hum, like a choir singing from a dead star.</div>
         </div>
 
-        <div class="archive-item">
-            <div class="archive-id">LOG_ENTRY_#004</div>
-            <div class="archive-title">VOID QUARTZ HARVEST</div>
-            <div class="archive-body">Deep-Claimed miners have hit a vein of raw Hollow Ore. Warning: Extended contact may trigger Agoraphobia traits.</div>
-        </div>
-
-        <div class="archive-item">
-            <div class="archive-id">LOG_ENTRY_#005</div>
-            <div class="archive-title">NULL WARDEN OBSERVATION</div>
-            <div class="archive-body">The Boundary is flickering. Unrendered entities have been crossing into the forest. Stay within the HQ perimeter.</div>
-        </div>
-
-        <div class="archive-item">
-            <div class="archive-id">LOG_ENTRY_#006</div>
-            <div class="archive-title">MENDER SPRITE MIGRATION</div>
-            <div class="archive-body">Large clusters of Sprites have been seen near the Edge. They are unusually aggressive in their healing attempts.</div>
-        </div>
-
-        <div style="height: 100px;"></div> </div>
+        <div style="height: 150px;"></div> 
+    </div>
 
     <script>
         const canvas = document.getElementById('trailCanvas');
@@ -114,23 +98,29 @@
         window.addEventListener('resize', resize);
         resize();
 
-        class Dust {
+        class Ember {
             constructor(x, y) {
                 this.x = x; this.y = y;
-                this.size = Math.random() * 3 + 1;
-                this.vx = (Math.random() - 0.5) * 2;
-                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 2 + 1;
+                this.vx = (Math.random() - 0.5) * 1.5;
+                this.vy = (Math.random() - 0.5) * 1.5;
                 this.life = 1.0;
-                this.color = Math.random() > 0.5 ? '#9d72ff' : '#4fc3f7';
+                // Colors: Burnt Orange, Celestial Rose, Gold
+                const colors = ['#ff4d4d', '#9b111e', '#ffd700', '#2e003e'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
             }
             update() {
                 this.x += this.vx; this.y += this.vy;
-                this.life -= 0.02;
+                this.life -= 0.015;
             }
             draw() {
                 ctx.fillStyle = this.color;
                 ctx.globalAlpha = this.life;
-                ctx.fillRect(this.x, this.y, this.size, this.size);
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.globalAlpha = 1.0;
             }
         }
@@ -140,40 +130,41 @@
 
             if (mouse.active && isDrawing) {
                 points.push({ x: mouse.x, y: mouse.y, age: 0 });
-                if (Math.random() > 0.5) particles.push(new Dust(mouse.x, mouse.y));
+                for(let i=0; i<2; i++) particles.push(new Ember(mouse.x, mouse.y));
             }
 
-            // Draw Nebula Trail
             if (points.length > 1) {
-                ctx.shadowBlur = 20;
+                ctx.globalCompositeOperation = 'screen';
                 
                 for (let i = 0; i < points.length; i++) {
                     const p = points[i];
                     const nextP = points[i + 1];
                     if (nextP) {
-                        const life = 1 - (p.age / 35);
+                        const life = 1 - (p.age / 45);
                         
-                        // Cosmic Gradient Logic
                         const grad = ctx.createLinearGradient(p.x, p.y, nextP.x, nextP.y);
-                        grad.addColorStop(0, `rgba(157, 114, 255, ${life})`); // Magenta/Purple
-                        grad.addColorStop(0.5, `rgba(79, 195, 247, ${life})`); // Cosmic Teal
-                        grad.addColorStop(1, `rgba(206, 147, 216, ${life})`); // Soft Pink
+                        // The Celestial Rose Palette
+                        grad.addColorStop(0, `rgba(46, 0, 62, ${life})`);   // Deep Midnight
+                        grad.addColorStop(0.3, `rgba(155, 17, 30, ${life})`); // Celestial Rose
+                        grad.addColorStop(0.7, `rgba(74, 14, 14, ${life})`);  // Deep Wine
+                        grad.addColorStop(1, `rgba(0, 0, 0, 0)`);
 
-                        ctx.shadowColor = '#9d72ff';
+                        ctx.shadowBlur = 25;
+                        ctx.shadowColor = '#9b111e';
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(nextP.x, nextP.y);
                         ctx.strokeStyle = grad;
-                        ctx.lineWidth = 18 * life;
+                        ctx.lineWidth = 22 * life;
                         ctx.lineCap = 'round';
                         ctx.stroke();
                     }
                     p.age += 1;
-                    if (p.age > 35) { points.splice(i, 1); i--; }
+                    if (p.age > 45) { points.splice(i, 1); i--; }
                 }
+                ctx.globalCompositeOperation = 'source-over';
             }
 
-            // Draw Dust Particles
             particles.forEach((p, i) => {
                 p.update(); p.draw();
                 if (p.life <= 0) particles.splice(i, 1);
@@ -200,15 +191,13 @@
             if (!isDrawing) {
                 const diffX = Math.abs(t.clientX - mouse.startX);
                 const diffY = Math.abs(t.clientY - mouse.startY);
-                // Warden Slash sensitivity
-                if (diffX > 25 && diffX > diffY) isDrawing = true;
+                if (diffX > 20 && diffX > diffY) isDrawing = true;
             }
         }
 
         window.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', () => { mouse.active = false; isDrawing = false; });
-
         window.addEventListener('touchstart', handleStart);
         window.addEventListener('touchmove', handleMove);
         window.addEventListener('touchend', () => { mouse.active = false; isDrawing = false; });
@@ -217,5 +206,3 @@
     </script>
 </body>
 </html>
-
-
