@@ -3,50 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — Precision Warden Wake</title>
+    <title>Hollow Realm — Smart Scroll Wake</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background-color: #050510; color: #fff;
             font-family: 'Inter', sans-serif; overflow: hidden;
-            touch-action: none;
+            touch-action: pan-y; /* Allows vertical scrolling but not horizontal */
         }
 
         canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
-        #ui-layer {
-            position: relative; z-index: 10; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            pointer-events: none;
+        /* SCROLLABLE CONTENT AREA */
+        #scroll-container {
+            position: relative; z-index: 10; width: 100%; height: 100vh;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding: 20px; box-sizing: border-box;
         }
 
         .hq-card {
-            background: rgba(10, 8, 30, 0.9);
-            border: 1px solid rgba(196, 130, 72, 0.4);
-            border-radius: 15px; padding: 30px; width: 280px;
-            text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            transition: transform 0.1s ease-out;
-            pointer-events: auto;
+            background: rgba(10, 8, 30, 0.85);
+            border: 1px solid rgba(196, 130, 72, 0.3);
+            border-radius: 12px; padding: 40px 20px; margin-bottom: 20px;
+            text-align: center; backdrop-filter: blur(10px);
         }
+
+        .label { font-size: 0.6rem; color: #c48248; letter-spacing: 4px; margin-bottom: 30px; text-align: center;}
     </style>
 </head>
 <body>
 
     <canvas id="trailCanvas"></canvas>
 
-    <div id="ui-layer">
-        <div class="hq-card" id="card1">MOON SQUAD HQ</div>
-        <div style="height:20px;"></div>
-        <div class="hq-card" id="card2">THE HOLLOW'S EDGE</div>
+    <div id="scroll-container">
+        <div class="label">SCROLL DOWN VS SLASH SIDEWAYS</div>
+        
+        <div class="hq-card">MOON SQUAD HQ</div>
+        <div class="hq-card">THE ASHTRAY SAVANNAH</div>
+        <div class="hq-card">GARRISON REMNANT</div>
+        <div class="hq-card">DROWNED ARCHIVE</div>
+        <div class="hq-card">THE HOLLOW'S EDGE</div>
+        <div class="hq-card">THE BEYOND</div>
+        <div class="hq-card">FINAL GATEWAY</div>
     </div>
 
     <script>
         const canvas = document.getElementById('trailCanvas');
         const ctx = canvas.getContext('2d');
-        const cards = document.querySelectorAll('.hq-card');
+        const scrollArea = document.getElementById('scroll-container');
 
         let points = [];
-        let mouse = { x: -100, y: -100, active: false };
+        let mouse = { x: -100, y: -100, active: false, startX: 0, startY: 0 };
+        let isDrawing = false;
 
         function resize() {
             canvas.width = window.innerWidth;
@@ -58,15 +66,13 @@
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. CONSTANT POINT GENERATION (The Glue)
-            // If the finger is down, we force a point every frame regardless of movement
-            if (mouse.active) {
+            // Only draw if we've identified a "Slash" (sideways move)
+            if (mouse.active && isDrawing) {
                 points.push({ x: mouse.x, y: mouse.y, age: 0 });
             }
 
             if (points.length > 1) {
-                // Glow effect
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 12;
                 ctx.shadowColor = '#9d72ff';
 
                 for (let i = 0; i < points.length; i++) {
@@ -74,65 +80,55 @@
                     const nextP = points[i + 1];
 
                     if (nextP) {
-                        const opacity = 1 - (p.age / 35);
-                        const width = 10 * (1 - p.age / 35);
-                        
+                        const life = 1 - (p.age / 30);
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(nextP.x, nextP.y);
-                        ctx.strokeStyle = `rgba(157, 114, 255, ${opacity})`;
-                        ctx.lineWidth = width;
+                        ctx.strokeStyle = `rgba(157, 114, 255, ${life})`;
+                        ctx.lineWidth = 12 * life;
                         ctx.lineCap = 'round';
                         ctx.stroke();
-                        
-                        // Static "Glitch" Sparks along the trail
-                        if (Math.random() > 0.9) {
-                            ctx.fillStyle = '#fff';
-                            ctx.fillRect(p.x + (Math.random()-0.5)*15, p.y + (Math.random()-0.5)*15, 2, 2);
-                        }
                     }
 
-                    p.age += 1; // How fast the trail disappears
-                    if (p.age > 35) {
-                        points.splice(i, 1);
-                        i--;
-                    }
+                    p.age += 1;
+                    if (p.age > 30) { points.splice(i, 1); i--; }
                 }
             }
-
-            // Physics: Cards shivering when the hand is near
-            cards.forEach(card => {
-                const rect = card.getBoundingClientRect();
-                const dx = (rect.left + rect.width / 2) - mouse.x;
-                const dy = (rect.top + rect.height / 2) - mouse.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-
-                if (dist < 140 && mouse.active) {
-                    const push = (140 - dist) / 5;
-                    const angle = Math.atan2(dy, dx);
-                    card.style.transform = `translate(${Math.cos(angle)*push}px, ${Math.sin(angle)*push}px) rotate(${push/3}deg)`;
-                } else {
-                    card.style.transform = `translate(0,0) rotate(0deg)`;
-                }
-            });
-
             requestAnimationFrame(animate);
         }
 
-        // INPUT LISTENERS (Direct tracking)
-        function updatePos(e) {
+        // SMART INPUT LOGIC
+        function handleStart(e) {
             const t = e.touches ? e.touches[0] : e;
+            mouse.active = true;
+            mouse.startX = t.clientX;
+            mouse.startY = t.clientY;
+            mouse.x = t.clientX;
+            mouse.y = t.clientY;
+            isDrawing = false; // Reset drawing state
+        }
+
+        function handleMove(e) {
+            const t = e.touches ? e.touches[0] : e;
+            const moveX = Math.abs(t.clientX - mouse.startX);
+            const moveY = Math.abs(t.clientY - mouse.startY);
+
+            // If moving horizontally more than vertically, trigger the Warden's Wake
+            if (moveX > 15 && moveX > moveY) {
+                isDrawing = true;
+            }
+
             mouse.x = t.clientX;
             mouse.y = t.clientY;
         }
 
-        window.addEventListener('mousedown', (e) => { mouse.active = true; updatePos(e); });
-        window.addEventListener('mouseup', () => { mouse.active = false; });
-        window.addEventListener('mousemove', updatePos);
+        window.addEventListener('mousedown', handleStart);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', () => { mouse.active = false; isDrawing = false; });
 
-        window.addEventListener('touchstart', (e) => { mouse.active = true; updatePos(e); });
-        window.addEventListener('touchend', () => { mouse.active = false; });
-        window.addEventListener('touchmove', (e) => { e.preventDefault(); updatePos(e); }, { passive: false });
+        window.addEventListener('touchstart', handleStart);
+        window.addEventListener('touchmove', handleMove);
+        window.addEventListener('touchend', () => { mouse.active = false; isDrawing = false; });
 
         animate();
     </script>
