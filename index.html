@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — Celestial Rose Nebula</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <title>Hollow Realm — Celestial Rose Deep</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #020105; color: #fff;
-            font-family: 'Inter', sans-serif; overflow: hidden;
+            background-color: #010103; color: #fff;
+            font-family: Arial, sans-serif; overflow: hidden;
         }
 
         canvas { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
@@ -18,35 +17,19 @@
             position: relative; z-index: 10;
             width: 100%; height: 100vh;
             overflow-y: auto; 
-            -webkit-overflow-scrolling: touch;
             padding: 20px; box-sizing: border-box;
-        }
-
-        .header {
-            font-family: 'Cinzel', serif;
-            font-size: 1.4rem; font-weight: bold; color: #c48248;
-            text-align: center; margin: 40px 0; letter-spacing: 5px;
-            text-shadow: 0 0 20px rgba(155, 17, 30, 0.6);
+            background: transparent;
         }
 
         .archive-item {
-            background: rgba(10, 5, 15, 0.9);
-            border: 1px solid rgba(155, 17, 30, 0.3);
+            background: rgba(8, 2, 5, 0.95);
+            border: 1px solid #4D0000;
             padding: 25px; margin-bottom: 20px; border-radius: 12px;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
-        .archive-id { font-size: 0.6rem; color: #9b111e; font-weight: bold; letter-spacing: 2px; margin-bottom: 8px; }
-        .archive-title { font-family: 'Cinzel', serif; font-size: 1rem; color: #e8e0ff; }
-        .archive-body { font-size: 0.75rem; color: #6d6a7a; margin-top: 10px; line-height: 1.5; }
-
-        .instruction-box {
-            background: rgba(155, 17, 30, 0.05);
-            border: 1px solid rgba(155, 17, 30, 0.4);
-            padding: 20px; border-radius: 12px; margin-bottom: 40px; 
-            font-size: 0.8rem; text-align: center; color: #ffb3b3;
-        }
+        .archive-title { color: #800020; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+        .archive-body { font-size: 0.8rem; color: #5a5566; margin-top: 10px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -54,33 +37,19 @@
     <canvas id="trailCanvas"></canvas>
 
     <div id="scroll-layer">
-        <div class="header">MOON SQUAD ARCHIVES</div>
+        <div style="text-align:center; color:#800020; letter-spacing:8px; margin: 40px 0; font-weight:bold;">CELESTIAL ROSE</div>
 
-        <div class="instruction-box">
-            <b>WARDEN COMMAND:</b><br>
-            Scroll <b>UP/DOWN</b> to read logs.<br>
-            Swipe <b>LEFT/RIGHT</b> to tear the Celestial Rose.
+        <div class="archive-item">
+            <div class="archive-title">Obsidian Shard Found</div>
+            <div class="archive-body">The deep rose nebula has begun to leak through the rifts. The color is heavy, like dried blood on the stone walls of the kingdom.</div>
         </div>
 
         <div class="archive-item">
-            <div class="archive-id">LOG_ENTRY_#001</div>
-            <div class="archive-title">THE ASHEN HUNT BEGINS</div>
-            <div class="archive-body">The horizon has turned a bruised plum color. The nebula is bleeding into the forest canopy. Gravenor is no longer just a wolf; he is the shadow within the rose.</div>
+            <div class="archive-title">Warden Log: Red Shift</div>
+            <div class="archive-body">The Static has shifted from violet to a deep, burnt crimson. Gravity feels twice as heavy. The Rose is blooming.</div>
         </div>
 
-        <div class="archive-item">
-            <div class="archive-id">LOG_ENTRY_#002</div>
-            <div class="archive-title">BLOOD-GOLD TITHES</div>
-            <div class="archive-body">Valdris has demanded the treasury be melted. The molten gold looks like veins of fire beneath the kingdom's stone. The cost of existence is rising.</div>
-        </div>
-
-        <div class="archive-item">
-            <div class="archive-id">LOG_ENTRY_#003</div>
-            <div class="archive-title">THE VOID'S EMBRACE</div>
-            <div class="archive-body">Communication with the Edge has been lost. The Static now carries a melodic hum, like a choir singing from a dead star.</div>
-        </div>
-
-        <div style="height: 150px;"></div> 
+        <div style="height: 400px;"></div> 
     </div>
 
     <script>
@@ -98,30 +67,25 @@
         window.addEventListener('resize', resize);
         resize();
 
-        class Ember {
+        class Particle {
             constructor(x, y) {
                 this.x = x; this.y = y;
-                this.size = Math.random() * 2 + 1;
-                this.vx = (Math.random() - 0.5) * 1.5;
-                this.vy = (Math.random() - 0.5) * 1.5;
+                this.size = Math.random() * 2 + 0.5;
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = (Math.random() - 0.5) * 1;
                 this.life = 1.0;
-                // Colors: Burnt Orange, Celestial Rose, Gold
-                const colors = ['#ff4d4d', '#9b111e', '#ffd700', '#2e003e'];
-                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.color = Math.random() > 0.3 ? '#800020' : '#FFD700'; // Blood Red or Gold
             }
             update() {
                 this.x += this.vx; this.y += this.vy;
-                this.life -= 0.015;
+                this.life -= 0.01;
             }
             draw() {
                 ctx.fillStyle = this.color;
                 ctx.globalAlpha = this.life;
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = this.color;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.globalAlpha = 1.0;
             }
         }
 
@@ -130,39 +94,40 @@
 
             if (mouse.active && isDrawing) {
                 points.push({ x: mouse.x, y: mouse.y, age: 0 });
-                for(let i=0; i<2; i++) particles.push(new Ember(mouse.x, mouse.y));
+                for(let i=0; i<1; i++) particles.push(new Particle(mouse.x, mouse.y));
             }
 
             if (points.length > 1) {
-                ctx.globalCompositeOperation = 'screen';
-                
                 for (let i = 0; i < points.length; i++) {
                     const p = points[i];
                     const nextP = points[i + 1];
                     if (nextP) {
-                        const life = 1 - (p.age / 45);
+                        const life = 1 - (p.age / 50);
                         
-                        const grad = ctx.createLinearGradient(p.x, p.y, nextP.x, nextP.y);
-                        // The Celestial Rose Palette
-                        grad.addColorStop(0, `rgba(46, 0, 62, ${life})`);   // Deep Midnight
-                        grad.addColorStop(0.3, `rgba(155, 17, 30, ${life})`); // Celestial Rose
-                        grad.addColorStop(0.7, `rgba(74, 14, 14, ${life})`);  // Deep Wine
-                        grad.addColorStop(1, `rgba(0, 0, 0, 0)`);
-
-                        ctx.shadowBlur = 25;
-                        ctx.shadowColor = '#9b111e';
+                        // DRAW DARK OUTER SMOKE
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(nextP.x, nextP.y);
-                        ctx.strokeStyle = grad;
-                        ctx.lineWidth = 22 * life;
+                        ctx.strokeStyle = `rgba(26, 0, 26, ${life * 0.8})`; // Midnight Plum
+                        ctx.lineWidth = 35 * life;
                         ctx.lineCap = 'round';
                         ctx.stroke();
+
+                        // DRAW DEEP ROSE CORE
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(nextP.x, nextP.y);
+                        ctx.strokeStyle = `rgba(128, 0, 32, ${life})`; // Deep Blood Rose
+                        ctx.lineWidth = 15 * life;
+                        ctx.lineCap = 'round';
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = '#4D0000';
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
                     }
                     p.age += 1;
-                    if (p.age > 45) { points.splice(i, 1); i--; }
+                    if (p.age > 50) { points.splice(i, 1); i--; }
                 }
-                ctx.globalCompositeOperation = 'source-over';
             }
 
             particles.forEach((p, i) => {
@@ -170,28 +135,25 @@
                 if (p.life <= 0) particles.splice(i, 1);
             });
 
+            ctx.globalAlpha = 1.0;
             requestAnimationFrame(animate);
         }
 
         function handleStart(e) {
             const t = e.touches ? e.touches[0] : e;
             mouse.active = true;
-            mouse.startX = t.clientX;
-            mouse.startY = t.clientY;
-            mouse.x = t.clientX;
-            mouse.y = t.clientY;
+            mouse.startX = t.clientX; mouse.startY = t.clientY;
+            mouse.x = t.clientX; mouse.y = t.clientY;
             isDrawing = false;
         }
 
         function handleMove(e) {
             const t = e.touches ? e.touches[0] : e;
-            mouse.x = t.clientX;
-            mouse.y = t.clientY;
-
+            mouse.x = t.clientX; mouse.y = t.clientY;
             if (!isDrawing) {
-                const diffX = Math.abs(t.clientX - mouse.startX);
-                const diffY = Math.abs(t.clientY - mouse.startY);
-                if (diffX > 20 && diffX > diffY) isDrawing = true;
+                const dx = Math.abs(t.clientX - mouse.startX);
+                const dy = Math.abs(t.clientY - mouse.startY);
+                if (dx > 25 && dx > dy) isDrawing = true;
             }
         }
 
