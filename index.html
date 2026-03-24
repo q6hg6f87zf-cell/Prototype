@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hollow Realm — High-Precision Wake</title>
+    <title>Hollow Realm — Precision Warden Wake</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #020208; color: #fff;
+            background-color: #050510; color: #fff;
             font-family: 'Inter', sans-serif; overflow: hidden;
             touch-action: none;
         }
@@ -17,6 +17,7 @@
         #ui-layer {
             position: relative; z-index: 10; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            pointer-events: none;
         }
 
         .hq-card {
@@ -27,8 +28,6 @@
             transition: transform 0.1s ease-out;
             pointer-events: auto;
         }
-
-        .label { font-size: 0.6rem; color: #c48248; letter-spacing: 3px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -36,7 +35,6 @@
     <canvas id="trailCanvas"></canvas>
 
     <div id="ui-layer">
-        <div class="label">WARDEN'S HAND</div>
         <div class="hq-card" id="card1">MOON SQUAD HQ</div>
         <div style="height:20px;"></div>
         <div class="hq-card" id="card2">THE HOLLOW'S EDGE</div>
@@ -48,7 +46,7 @@
         const cards = document.querySelectorAll('.hq-card');
 
         let points = [];
-        let mouse = { x: 0, y: 0, active: false };
+        let mouse = { x: -100, y: -100, active: false };
 
         function resize() {
             canvas.width = window.innerWidth;
@@ -57,95 +55,84 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // THE TRAIL POINT LOGIC
-        function addPoint(x, y) {
-            points.push({
-                x: x,
-                y: y,
-                age: 0,
-                force: 10
-            });
-        }
-
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // 1. CONSTANT POINT GENERATION (The Glue)
+            // If the finger is down, we force a point every frame regardless of movement
+            if (mouse.active) {
+                points.push({ x: mouse.x, y: mouse.y, age: 0 });
+            }
+
             if (points.length > 1) {
-                ctx.beginPath();
-                ctx.shadowBlur = 15;
+                // Glow effect
+                ctx.shadowBlur = 10;
                 ctx.shadowColor = '#9d72ff';
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
 
                 for (let i = 0; i < points.length; i++) {
                     const p = points[i];
                     const nextP = points[i + 1];
 
-                    // Draw the segment
                     if (nextP) {
-                        const opacity = 1 - (p.age / 40);
-                        const width = 8 * (1 - p.age / 40);
+                        const opacity = 1 - (p.age / 35);
+                        const width = 10 * (1 - p.age / 35);
                         
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(nextP.x, nextP.y);
                         ctx.strokeStyle = `rgba(157, 114, 255, ${opacity})`;
                         ctx.lineWidth = width;
+                        ctx.lineCap = 'round';
                         ctx.stroke();
                         
-                        // Add "Static" Flickers
-                        if (Math.random() > 0.8) {
+                        // Static "Glitch" Sparks along the trail
+                        if (Math.random() > 0.9) {
                             ctx.fillStyle = '#fff';
-                            ctx.fillRect(p.x + (Math.random()-0.5)*10, p.y + (Math.random()-0.5)*10, 2, 2);
+                            ctx.fillRect(p.x + (Math.random()-0.5)*15, p.y + (Math.random()-0.5)*15, 2, 2);
                         }
                     }
 
-                    p.age++;
-                    if (p.age > 40) {
+                    p.age += 1; // How fast the trail disappears
+                    if (p.age > 35) {
                         points.splice(i, 1);
                         i--;
                     }
                 }
             }
 
-            // Physics: Cards react to the path
+            // Physics: Cards shivering when the hand is near
             cards.forEach(card => {
                 const rect = card.getBoundingClientRect();
-                const cx = rect.left + rect.width / 2;
-                const cy = rect.top + rect.height / 2;
-                
-                const dx = cx - mouse.x;
-                const dy = cy - mouse.y;
+                const dx = (rect.left + rect.width / 2) - mouse.x;
+                const dy = (rect.top + rect.height / 2) - mouse.y;
                 const dist = Math.sqrt(dx*dx + dy*dy);
 
-                if (dist < 150 && mouse.active) {
+                if (dist < 140 && mouse.active) {
+                    const push = (140 - dist) / 5;
                     const angle = Math.atan2(dy, dx);
-                    const push = (150 - dist) / 6;
-                    card.style.transform = `translate(${Math.cos(angle)*push}px, ${Math.sin(angle)*push}px) rotate(${push/4}deg)`;
+                    card.style.transform = `translate(${Math.cos(angle)*push}px, ${Math.sin(angle)*push}px) rotate(${push/3}deg)`;
                 } else {
-                    card.style.transform = `translate(0, 0) rotate(0deg)`;
+                    card.style.transform = `translate(0,0) rotate(0deg)`;
                 }
             });
 
             requestAnimationFrame(animate);
         }
 
-        function handleInput(e) {
+        // INPUT LISTENERS (Direct tracking)
+        function updatePos(e) {
             const t = e.touches ? e.touches[0] : e;
             mouse.x = t.clientX;
             mouse.y = t.clientY;
-            if (mouse.active) {
-                addPoint(mouse.x, mouse.y);
-            }
         }
 
-        window.addEventListener('mousedown', (e) => { mouse.active = true; handleInput(e); });
+        window.addEventListener('mousedown', (e) => { mouse.active = true; updatePos(e); });
         window.addEventListener('mouseup', () => { mouse.active = false; });
-        window.addEventListener('mousemove', handleInput);
+        window.addEventListener('mousemove', updatePos);
 
-        window.addEventListener('touchstart', (e) => { mouse.active = true; handleInput(e); });
+        window.addEventListener('touchstart', (e) => { mouse.active = true; updatePos(e); });
         window.addEventListener('touchend', () => { mouse.active = false; });
-        window.addEventListener('touchmove', handleInput);
+        window.addEventListener('touchmove', (e) => { e.preventDefault(); updatePos(e); }, { passive: false });
 
         animate();
     </script>
