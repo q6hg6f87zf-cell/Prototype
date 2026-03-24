@@ -3,61 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moon Squad — System Sync</title>
+    <title>Hollow Realm — Scroll vs Wake Test</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #020205; color: #fff;
-            font-family: 'Segoe UI', sans-serif; overflow: hidden;
-            touch-action: none;
+            background-color: #050510; color: #fff;
+            font-family: 'Inter', sans-serif; overflow: hidden;
         }
+
         canvas { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
-        #content {
-            position: relative; z-index: 10; width: 100%; height: 100vh;
-            overflow-y: auto; padding: 20px; box-sizing: border-box;
+
+        /* THE ACTUAL CONTENT YOU NEED TO SCROLL */
+        #scroll-layer {
+            position: relative; z-index: 10;
+            width: 100%; height: 100vh;
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+            padding: 20px; box-sizing: border-box;
+            background: transparent;
         }
-        .hq-card {
-            background: rgba(10, 5, 20, 0.95);
-            border-left: 4px solid #00d4ff;
-            border-right: 4px solid #9b1b1b;
-            padding: 30px; margin-bottom: 20px; border-radius: 4px;
-            box-shadow: 0 0 15px rgba(155, 27, 27, 0.2);
+
+        .header {
+            font-size: 1.2rem; font-weight: bold; color: #c48248;
+            text-align: center; margin: 40px 0; letter-spacing: 5px;
         }
-        h1 { 
-            color: #d35400; text-align: center; letter-spacing: 12px; 
-            margin-top: 50px; text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(211, 84, 0, 0.4);
+
+        .archive-item {
+            background: rgba(15, 12, 40, 0.8);
+            border: 1px solid rgba(196, 130, 72, 0.2);
+            padding: 20px; margin-bottom: 15px; border-radius: 8px;
+            backdrop-filter: blur(5px);
         }
-        .status-tag { font-size: 0.6rem; color: #00d4ff; font-weight: bold; letter-spacing: 2px; }
+
+        .archive-id { font-size: 0.6rem; color: #8b85a1; margin-bottom: 5px; }
+        .archive-title { font-weight: bold; color: #9d72ff; }
+        
+        .instruction-box {
+            background: rgba(157, 114, 255, 0.1);
+            border: 1px solid #9d72ff; padding: 15px;
+            border-radius: 8px; margin-bottom: 30px; font-size: 0.8rem;
+            line-height: 1.4; text-align: center;
+        }
     </style>
 </head>
 <body>
 
-    <canvas id="nebulaCanvas"></canvas>
+    <canvas id="trailCanvas"></canvas>
 
-    <div id="content">
-        <h1>MOON SQUAD</h1>
-        <p style="text-align:center; font-size:0.7rem; color:#8b85a1; margin-bottom:40px;">LEADER: BRENT | SECTOR: GRANDE CACHE</p>
+    <div id="scroll-layer">
+        <div class="header">MOON SQUAD ARCHIVES</div>
 
-        <div class="hq-card">
-            <div class="status-tag">NEBULA_SYNC: COMPLETE</div>
-            <h3 style="color:#fff; margin: 10px 0;">SQUAD VISUALS</h3>
-            <p style="color:#8b85a1; font-size:0.85rem;">The "Celestial Rose" has been overwritten. The system now recognizes the <b>Crimson, Orange, and Cyan</b> of the Moon Squad emblem.</p>
+        <div class="instruction-box">
+            <b>TEST LOGIC:</b><br>
+            1. Scroll UP/DOWN to read the list.<br>
+            2. Swipe LEFT/RIGHT to trigger the Warden's Wake.
         </div>
 
-        <div class="hq-card">
-            <div class="status-tag">SYSTEM_LOG: #0324</div>
-            <h3 style="color:#fff; margin: 10px 0;">WARDEN INTERFACE</h3>
-            <p style="color:#8b85a1; font-size:0.85rem;">Horizontal slashes will now ignite the <b>Electric Cyan</b> spark over the <b>Crimson</b> smoke trail.</p>
-        </div>
-
-        <div style="height: 500px;"></div>
+        <div id="content-anchor"></div>
     </div>
 
     <script>
-        const canvas = document.getElementById('nebulaCanvas');
+        // Populate items
+        const anchor = document.getElementById('content-anchor');
+        for(let i=1; i<=20; i++) {
+            anchor.innerHTML += `
+                <div class="archive-item">
+                    <div class="archive-id">LOG_ENTRY_#00${i}</div>
+                    <div class="archive-title">Scouting Mission: Sector ${i*7}</div>
+                    <p style="font-size: 0.7rem; color: #bbb; margin-top:10px;">
+                        The Static in this region is measured at ${Math.floor(Math.random()*100)}%. 
+                        Moon Squad members are advised to check their Lockboxes before proceeding.
+                    </p>
+                </div>
+            `;
+        }
+
+        const canvas = document.getElementById('trailCanvas');
         const ctx = canvas.getContext('2d');
-        let particles = [];
+        let points = [];
         let mouse = { x: 0, y: 0, active: false, startX: 0, startY: 0 };
         let isDrawing = false;
 
@@ -68,73 +91,64 @@
         window.addEventListener('resize', resize);
         resize();
 
-        class MoonStatic {
-            constructor(x, y, color, size, speed) {
-                this.x = x; this.y = y;
-                this.size = size;
-                this.life = 1.0;
-                this.decay = Math.random() * 0.02 + 0.01;
-                this.color = color;
-                this.vx = (Math.random() - 0.5) * speed;
-                this.vy = (Math.random() - 0.5) * speed;
-            }
-            update() {
-                this.x += this.vx; this.y += this.vy;
-                this.life -= this.decay;
-                this.size += 0.4;
-            }
-            draw() {
-                ctx.globalAlpha = this.life;
-                const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-                g.addColorStop(0, this.color);
-                g.addColorStop(1, 'transparent');
-                ctx.fillStyle = g;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             if (mouse.active && isDrawing) {
-                // CORE MOON SQUAD COLORS
-                particles.push(new MoonStatic(mouse.x, mouse.y, '#9b1b1b', 55, 1.2)); // Crimson
-                if (Math.random() > 0.4) particles.push(new MoonStatic(mouse.x, mouse.y, '#d35400', 35, 2.0)); // Orange
-                if (Math.random() > 0.7) particles.push(new MoonStatic(mouse.x, mouse.y, '#00d4ff', 18, 0.5)); // Cyan Spark
+                points.push({ x: mouse.x, y: mouse.y, age: 0 });
             }
-
-            particles.forEach((p, i) => {
-                p.update();
-                p.draw();
-                if (p.life <= 0) particles.splice(i, 1);
-            });
-
+            if (points.length > 1) {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#9d72ff';
+                for (let i = 0; i < points.length; i++) {
+                    const p = points[i];
+                    const nextP = points[i + 1];
+                    if (nextP) {
+                        const life = 1 - (p.age / 30);
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(nextP.x, nextP.y);
+                        ctx.strokeStyle = `rgba(157, 114, 255, ${life})`;
+                        ctx.lineWidth = 15 * life;
+                        ctx.lineCap = 'round';
+                        ctx.stroke();
+                    }
+                    p.age += 1;
+                    if (p.age > 30) { points.splice(i, 1); i--; }
+                }
+            }
             requestAnimationFrame(animate);
         }
 
+        // Logic to detect swipe direction
         function handleStart(e) {
             const t = e.touches ? e.touches[0] : e;
             mouse.active = true;
-            mouse.startX = t.clientX; mouse.startY = t.clientY;
-            mouse.x = t.clientX; mouse.y = t.clientY;
+            mouse.startX = t.clientX;
+            mouse.startY = t.clientY;
+            mouse.x = t.clientX;
+            mouse.y = t.clientY;
             isDrawing = false;
         }
 
         function handleMove(e) {
             const t = e.touches ? e.touches[0] : e;
-            mouse.x = t.clientX; mouse.y = t.clientY;
+            mouse.x = t.clientX;
+            mouse.y = t.clientY;
+
             if (!isDrawing) {
-                const dx = Math.abs(t.clientX - mouse.startX);
-                const dy = Math.abs(t.clientY - mouse.startY);
-                if (dx > 25 && dx > dy) isDrawing = true;
+                const diffX = Math.abs(t.clientX - mouse.startX);
+                const diffY = Math.abs(t.clientY - mouse.startY);
+                // If moving more horizontally than vertically, trigger the wake
+                if (diffX > 20 && diffX > diffY) {
+                    isDrawing = true;
+                }
             }
         }
 
         window.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', () => { mouse.active = false; isDrawing = false; });
+
         window.addEventListener('touchstart', handleStart);
         window.addEventListener('touchmove', handleMove);
         window.addEventListener('touchend', () => { mouse.active = false; isDrawing = false; });
