@@ -3,146 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moon Squad — Absolute Ignite</title>
+    <title>Moon Squad</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #020205; color: #fff;
+            background-color: #05050a; color: #ffffff;
             font-family: sans-serif; overflow: hidden;
-            touch-action: none;
+            touch-action: none; /* Stops the phone from fighting the nebula */
         }
-        canvas { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
-        
-        /* FULL SCREEN OVERLAY */
-        #ignite-overlay {
-            position: fixed; inset: 0; z-index: 9999;
-            background: #020205; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: opacity 1s;
+        canvas {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
         }
-        #ignite-text {
-            color: #d35400; font-weight: bold; font-size: 1.5rem;
-            letter-spacing: 10px; text-align: center;
-            text-shadow: 0 0 20px #9b1b1b;
-            animation: pulse 1.5s infinite;
+        #ui {
+            position: relative; z-index: 10;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center;
         }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
-
-        /* SCROLLABLE CONTENT */
-        #content {
-            position: relative; z-index: 10; width: 100%; height: 100vh;
-            overflow-y: auto; padding: 20px; box-sizing: border-box;
-            opacity: 0; display: none;
+        h1 { color: #d35400; letter-spacing: 15px; margin: 0; font-size: 2rem; }
+        p { color: #8b85a1; font-size: 0.7rem; letter-spacing: 3px; margin-top: 10px; }
+        .box {
+            border: 1px solid #9b1b1b; padding: 20px; margin-top: 40px;
+            background: rgba(10, 5, 20, 0.8); border-radius: 8px; width: 80%;
         }
-        .hq-card {
-            background: rgba(10, 5, 20, 0.95);
-            border-left: 4px solid #00d4ff; border-right: 4px solid #9b1b1b;
-            padding: 30px; margin-bottom: 20px; border-radius: 4px;
-        }
-        h1 { color: #d35400; text-align: center; letter-spacing: 12px; margin: 40px 0; }
     </style>
 </head>
 <body>
 
-    <div id="ignite-overlay" onclick="launch()">
-        <div id="ignite-text">TAP TO IGNITE</div>
-    </div>
+    <canvas id="c"></canvas>
 
-    <canvas id="nebulaCanvas"></canvas>
-
-    <div id="content">
+    <div id="ui">
         <h1>MOON SQUAD</h1>
-        <div class="hq-card">
-            <h3 style="color:#00d4ff">SYSTEM_LOG: #0324</h3>
-            <p style="color:#8b85a1">Warden Access Authorized. Swipe horizontally to ignite the nebula trail.</p>
+        <p>LEADER: BRENT | GRANDE CACHE</p>
+        
+        <div class="box">
+            <div style="color:#00d4ff; font-weight:bold; margin-bottom:10px;">SYSTEM LIVE</div>
+            <div style="font-size: 0.8rem; color:#bbb;">Swipe sideways to ignite the nebula.</div>
         </div>
-        <div class="hq-card">
-            <h3 style="color:#d35400">LAUNCH_DATE</h3>
-            <p style="color:#8b85a1"><b>MAY 2, 2026</b>. Prepare the Squad for the Beyond.</p>
-        </div>
-        <div style="height: 500px;"></div>
     </div>
 
     <script>
-        const canvas = document.getElementById('nebulaCanvas');
+        const canvas = document.getElementById('c');
         const ctx = canvas.getContext('2d');
-        let particles = [];
-        let mouse = { x: 0, y: 0, active: false, startX: 0, startY: 0 };
-        let isDrawing = false;
+        let pts = [];
+        let m = { x: 0, y: 0, active: false, sx: 0, sy: 0 };
+        let drawing = false;
 
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
-
-        function launch() {
-            const overlay = document.getElementById('ignite-overlay');
-            const content = document.getElementById('content');
-            
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                content.style.display = 'block';
-                setTimeout(() => content.style.opacity = '1', 50);
-                
-                // Big Bang Burst
-                for(let i=0; i<80; i++) {
-                    particles.push(new MoonStatic(window.innerWidth/2, window.innerHeight/2, '#9b1b1b', 100, 8));
-                    if(i%3==0) particles.push(new MoonStatic(window.innerWidth/2, window.innerHeight/2, '#00d4ff', 40, 5));
-                }
-            }, 1000);
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
+        window.addEventListener('resize', resize);
+        resize();
 
-        class MoonStatic {
-            constructor(x, y, color, size, speed) {
-                this.x = x; this.y = y; this.size = size; this.life = 1.0;
-                this.decay = Math.random() * 0.02 + 0.01; this.color = color;
-                this.vx = (Math.random() - 0.5) * speed; this.vy = (Math.random() - 0.5) * speed;
+        class Particle {
+            constructor(x, y, color, size) {
+                this.x = x; this.y = y; this.size = size;
+                this.life = 1.0; this.color = color;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
             }
-            update() { this.x += this.vx; this.y += this.vy; this.life -= this.decay; this.size += 0.5; }
             draw() {
                 ctx.globalAlpha = this.life;
-                const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-                g.addColorStop(0, this.color); g.addColorStop(1, 'transparent');
-                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+                let g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                g.addColorStop(0, this.color);
+                g.addColorStop(1, 'transparent');
+                ctx.fillStyle = g;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
             }
         }
 
-        function animate() {
+        function loop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (mouse.active && isDrawing) {
-                particles.push(new MoonStatic(mouse.x, mouse.y, '#9b1b1b', 60, 1.2));
-                if (Math.random() > 0.4) particles.push(new MoonStatic(mouse.x, mouse.y, '#d35400', 35, 2.0));
-                if (Math.random() > 0.7) particles.push(new MoonStatic(mouse.x, mouse.y, '#00d4ff', 20, 0.5));
+            if (m.active && drawing) {
+                pts.push(new Particle(m.x, m.y, '#9b1b1b', 60)); // Crimson
+                if(Math.random() > 0.6) pts.push(new Particle(m.x, m.y, '#00d4ff', 25)); // Cyan
             }
-            particles.forEach((p, i) => {
-                p.update(); p.draw();
-                if (p.life <= 0) particles.splice(i, 1);
+            pts.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.02; p.size += 0.5;
+                p.draw();
+                if(p.life <= 0) pts.splice(i, 1);
             });
-            requestAnimationFrame(animate);
+            requestAnimationFrame(loop);
         }
 
-        function handleStart(e) {
-            const t = e.touches ? e.touches[0] : e;
-            mouse.active = true; mouse.startX = t.clientX; mouse.startY = t.clientY;
-            mouse.x = t.clientX; mouse.y = t.clientY; isDrawing = false;
+        function start(e) {
+            let t = e.touches ? e.touches[0] : e;
+            m.active = true; m.sx = t.clientX; m.sy = t.clientY;
+            m.x = t.clientX; m.y = t.clientY; drawing = false;
         }
 
-        function handleMove(e) {
-            const t = e.touches ? e.touches[0] : e;
-            mouse.x = t.clientX; mouse.y = t.clientY;
-            if (!isDrawing && mouse.active) {
-                const dx = Math.abs(t.clientX - mouse.startX);
-                const dy = Math.abs(t.clientY - mouse.startY);
-                if (dx > 25 && dx > dy) isDrawing = true;
+        function move(e) {
+            let t = e.touches ? e.touches[0] : e;
+            m.x = t.clientX; m.y = t.clientY;
+            if(!drawing) {
+                if(Math.abs(t.clientX - m.sx) > 15) drawing = true;
             }
         }
 
-        window.addEventListener('mousedown', handleStart);
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', () => { mouse.active = false; isDrawing = false; });
-        window.addEventListener('touchstart', handleStart);
-        window.addEventListener('touchmove', handleMove);
-        window.addEventListener('touchend', () => { mouse.active = false; isDrawing = false; });
+        window.addEventListener('mousedown', start);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', () => { m.active = false; });
+        window.addEventListener('touchstart', start);
+        window.addEventListener('touchmove', move);
+        window.addEventListener('touchend', () => { m.active = false; });
 
-        animate();
+        loop();
     </script>
 </body>
 </html>
