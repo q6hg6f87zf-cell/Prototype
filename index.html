@@ -3,48 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moon Squad — Live Interface</title>
+    <title>Moon Squad — Absolute Sync</title>
     <style>
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: #000; overflow: hidden; touch-action: none; 
         }
 
-        /* DIRECT IMAGE LINK INJECTED */
+        /* DIRECT LOCAL FILE REFERENCE */
         #bg-layer {
-            position: fixed; top: -15%; left: -15%; width: 130%; height: 130%;
-            background-image: url('https://raw.githubusercontent.com/q6hg6f87zf-cell/q6hg6f87zf-cell.github.io/main/IMG_5121.png');
-            background-size: cover; background-position: center;
-            z-index: 0; pointer-events: none;
-            transition: transform 0.15s ease-out;
-            filter: brightness(0.8) contrast(1.1);
+            position: fixed; 
+            top: -10%; left: -10%; 
+            width: 120%; height: 120%;
+            background-image: url('IMG_5121.png');
+            background-size: cover; 
+            background-position: center;
+            z-index: 1; /* Sits at the very back */
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+            filter: brightness(0.8);
         }
 
-        canvas { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
-
-        #flare {
-            position: fixed; top: 50%; left: 0; width: 100%; height: 3px;
-            background: linear-gradient(90deg, transparent, #ffd700, #fff, #ffd700, transparent);
-            z-index: 6; opacity: 0; pointer-events: none;
-            box-shadow: 0 0 25px #d35400; transform: translateY(-50%) scaleX(0);
-            transition: opacity 0.2s, transform 0.4s ease-in-out;
+        /* Canvas sits on top of the background but below the UI */
+        canvas { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            z-index: 5; 
+            pointer-events: none; 
         }
 
         #ui-header {
-            position: relative; z-index: 10; width: 100%; text-align: center;
-            padding-top: 40px; pointer-events: none;
+            position: relative; 
+            z-index: 10; 
+            width: 100%; 
+            text-align: center;
+            padding-top: 50px; 
+            pointer-events: none;
         }
 
         h1 { 
-            color: #d35400; font-size: 2rem; letter-spacing: 12px; 
-            text-shadow: 0 0 20px #9b1b1b; margin: 0;
+            color: #d35400; 
+            font-size: 2.5rem; 
+            letter-spacing: 15px; 
+            text-shadow: 0 0 20px #9b1b1b, 0 0 10px #000; 
+            margin: 0;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
     <div id="bg-layer"></div>
-    <div id="flare"></div>
     <canvas id="c"></canvas>
 
     <div id="ui-header">
@@ -55,14 +65,17 @@
         const canvas = document.getElementById('c');
         const ctx = canvas.getContext('2d');
         const bg = document.getElementById('bg-layer');
-        const flare = document.getElementById('flare');
         
         let pts = [];
         let m = { x: 0, y: 0, active: false, sx: 0, sy: 0 };
         let drawing = false;
 
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
+        function resize() { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight; 
+        }
+        window.addEventListener('resize', resize); 
+        resize();
 
         class Particle {
             constructor(x, y, color, size, vx, vy, life) {
@@ -73,8 +86,12 @@
                 ctx.globalAlpha = this.life;
                 ctx.globalCompositeOperation = 'screen';
                 let g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-                g.addColorStop(0, this.color); g.addColorStop(1, 'transparent');
-                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                g.addColorStop(0, this.color); 
+                g.addColorStop(1, 'transparent');
+                ctx.fillStyle = g; 
+                ctx.beginPath(); 
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); 
+                ctx.fill();
             }
         }
 
@@ -82,24 +99,17 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             if (m.active) {
-                // High-Response Parallax
-                let tx = (m.x - window.innerWidth/2) / 15;
-                let ty = (m.y - window.innerHeight/2) / 15;
+                // Parallax Shift
+                let tx = (m.x - window.innerWidth/2) / 20;
+                let ty = (m.y - window.innerHeight/2) / 20;
                 bg.style.transform = `translate(${-tx}px, ${-ty}px)`;
-
-                // Flare Logic: If finger is in the center "Diamond Zone"
-                if (m.y > window.innerHeight * 0.4 && m.y < window.innerHeight * 0.6) {
-                    flare.style.opacity = "1";
-                    flare.style.transform = "translateY(-50%) scaleX(1)";
-                } else {
-                    flare.style.opacity = "0";
-                    flare.style.transform = "translateY(-50%) scaleX(0)";
-                }
             }
 
             if (m.active && drawing) {
-                pts.push(new Particle(m.x, m.y, '#9b1b1b', 70, (Math.random()-0.5), (Math.random()-0.5), 0.7));
-                if(Math.random() > 0.5) pts.push(new Particle(m.x, m.y, '#00d4ff', 35, 0, 0, 0.5));
+                // Crimson smoke
+                pts.push(new Particle(m.x, m.y, '#9b1b1b', 65, (Math.random()-0.5), (Math.random()-0.5), 0.7));
+                // Cyan spark
+                if(Math.random() > 0.6) pts.push(new Particle(m.x, m.y, '#00d4ff', 30, 0, 0, 0.5));
             }
 
             pts.forEach((p, i) => {
@@ -119,10 +129,14 @@
             m.x = t.clientX; m.y = t.clientY;
             if(!drawing && Math.abs(t.clientX - m.sx) > 15) drawing = true;
         }
-        function end() { m.active = false; drawing = false; flare.style.opacity = "0"; }
+        function end() { m.active = false; drawing = false; }
 
-        window.addEventListener('mousedown', start); window.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
-        window.addEventListener('touchstart', start); window.addEventListener('touchmove', move); window.addEventListener('touchend', end);
+        window.addEventListener('mousedown', start); 
+        window.addEventListener('mousemove', move); 
+        window.addEventListener('mouseup', end);
+        window.addEventListener('touchstart', start); 
+        window.addEventListener('touchmove', move); 
+        window.addEventListener('touchend', end);
 
         loop();
     </script>
