@@ -3,38 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moon Squad — High Impact</title>
+    <title>Moon Squad — Geometry Sync</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #020205; overflow: hidden; touch-action: none; font-family: sans-serif; }
-        canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-        #ui { position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-        h1 { color: #d35400; letter-spacing: 15px; text-shadow: 0 0 20px #9b1b1b; }
-        .inst { color: #00d4ff; font-size: 0.7rem; letter-spacing: 3px; margin-top: 10px; opacity: 0.7; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #000; overflow: hidden; touch-action: none; 
+        }
+
+        #bg-layer {
+            position: fixed; top: -10%; left: -10%; width: 120%; height: 120%;
+            background-image: url('YOUR_IMAGE_URL_HERE');
+            background-size: cover; background-position: center;
+            z-index: 0; pointer-events: none;
+            transition: transform 0.1s ease-out, filter 0.2s;
+            filter: brightness(0.8);
+        }
+
+        canvas { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+
+        /* THE LENS FLARE LINE */
+        #flare {
+            position: fixed; top: 50%; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #ffd700, #fff, #ffd700, transparent);
+            z-index: 6; opacity: 0; pointer-events: none;
+            box-shadow: 0 0 20px #d35400; transform: translateY(-50%) scaleX(0);
+            transition: opacity 0.3s, transform 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        .glitch { filter: hue-rotate(90deg) brightness(1.5) !important; }
     </style>
 </head>
 <body>
+
+    <div id="bg-layer"></div>
+    <div id="flare"></div>
     <canvas id="c"></canvas>
-    <div id="ui">
-        <h1>MOON SQUAD</h1>
-        <div class="inst">SWIPE FAST & RELEASE TO BURST</div>
-    </div>
 
     <script>
         const canvas = document.getElementById('c');
         const ctx = canvas.getContext('2d');
+        const bg = document.getElementById('bg-layer');
+        const flare = document.getElementById('flare');
+        
         let pts = [];
-        let embers = [];
         let m = { x: 0, y: 0, active: false, sx: 0, sy: 0 };
         let drawing = false;
 
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize);
-        resize();
-
-        // Create initial drifting embers
-        for(let i=0; i<30; i++) {
-            embers.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: (Math.random()-0.5), vy: (Math.random()-0.5), size: Math.random()*2, color: '#d35400' });
-        }
+        window.addEventListener('resize', resize); resize();
 
         class Particle {
             constructor(x, y, color, size, vx, vy, life) {
@@ -43,6 +59,7 @@
             }
             draw() {
                 ctx.globalAlpha = this.life;
+                ctx.globalCompositeOperation = 'screen';
                 let g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
                 g.addColorStop(0, this.color); g.addColorStop(1, 'transparent');
                 ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
@@ -52,29 +69,29 @@
         function loop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw background embers
-            embers.forEach(e => {
-                e.x += e.vx; e.y += e.vy;
-                if(e.x < 0) e.x = canvas.width; if(e.x > canvas.width) e.x = 0;
-                if(e.y < 0) e.y = canvas.height; if(e.y > canvas.height) e.y = 0;
-                
-                // Attraction to finger
-                if(m.active) {
-                    let dx = m.x - e.x; let dy = m.y - e.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-                    if(dist < 200) { e.x += dx*0.02; e.y += dy*0.02; e.color = '#00d4ff'; }
-                    else { e.color = '#d35400'; }
+            if (m.active) {
+                // Parallax
+                let tx = (m.x - window.innerWidth/2) / 30;
+                let ty = (m.y - window.innerHeight/2) / 30;
+                bg.style.transform = `translate(${-tx}px, ${-ty}px) scale(1.05)`;
+
+                // Flare Trigger (When crossing the horizontal center diamond area)
+                if (Math.abs(m.y - window.innerHeight/2) < 50) {
+                    flare.style.opacity = "0.8";
+                    flare.style.transform = "translateY(-50%) scaleX(1)";
+                } else {
+                    flare.style.opacity = "0";
+                    flare.style.transform = "translateY(-50%) scaleX(0)";
                 }
-                ctx.fillStyle = e.color; ctx.globalAlpha = 0.3; ctx.fillRect(e.x, e.y, e.size, e.size);
-            });
+            }
 
             if (m.active && drawing) {
-                pts.push(new Particle(m.x, m.y, '#9b1b1b', 50, (Math.random()-0.5), (Math.random()-0.5), 1.0));
-                if(Math.random() > 0.7) pts.push(new Particle(m.x, m.y, '#00d4ff', 20, 0, 0, 0.8));
+                pts.push(new Particle(m.x, m.y, '#9b1b1b', 60, (Math.random()-0.5), (Math.random()-0.5), 0.7));
+                if(Math.random() > 0.5) pts.push(new Particle(m.x, m.y, '#00d4ff', 30, 0, 0, 0.5));
             }
 
             pts.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy; p.life -= 0.02; p.size += 0.2;
+                p.x += p.vx; p.y += p.vy; p.life -= 0.02; p.size += 0.3;
                 p.draw();
                 if(p.life <= 0) pts.splice(i, 1);
             });
@@ -82,8 +99,10 @@
         }
 
         function burst() {
-            for(let i=0; i<15; i++) {
-                pts.push(new Particle(m.x, m.y, '#00d4ff', 30, (Math.random()-0.5)*10, (Math.random()-0.5)*10, 1.0));
+            bg.classList.add('glitch');
+            setTimeout(() => bg.classList.remove('glitch'), 150);
+            for(let i=0; i<25; i++) {
+                pts.push(new Particle(m.x, m.y, '#00d4ff', 40, (Math.random()-0.5)*15, (Math.random()-0.5)*15, 1.0));
             }
         }
 
@@ -91,21 +110,15 @@
             let t = e.touches ? e.touches[0] : e;
             m.active = true; m.sx = t.clientX; m.sy = t.clientY; m.x = t.clientX; m.y = t.clientY; drawing = false;
         }
-
         function move(e) {
             let t = e.touches ? e.touches[0] : e;
             m.x = t.clientX; m.y = t.clientY;
             if(!drawing && Math.abs(t.clientX - m.sx) > 15) drawing = true;
         }
-
         function end() { if(drawing) burst(); m.active = false; drawing = false; }
 
-        window.addEventListener('mousedown', start);
-        window.addEventListener('mousemove', move);
-        window.addEventListener('mouseup', end);
-        window.addEventListener('touchstart', start);
-        window.addEventListener('touchmove', move);
-        window.addEventListener('touchend', end);
+        window.addEventListener('mousedown', start); window.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+        window.addEventListener('touchstart', start); window.addEventListener('touchmove', move); window.addEventListener('touchend', end);
 
         loop();
     </script>
